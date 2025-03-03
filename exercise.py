@@ -14,7 +14,7 @@ def process_sentence(sentence: str, source_lang: str, target_lang: str):
     # Exclude grammar particles
     grammar_particles = {
         "english": ["is", "are", "the", "a", "an", "to", "do", "does", "has", "have"],
-        "italian": ["è", "sono", "il", "la", "un", "una", "per", "fare", "ha", "ho"]
+        "italian": ["è", "sono", "il", "la", "le", "i", "un", "una", "per", "fare", "ha", "ho"]
     }
 
     learnable_words = [word for word in words if word.lower() not in grammar_particles[source_lang.lower()]]

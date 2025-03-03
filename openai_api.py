@@ -8,9 +8,9 @@ client = openai.OpenAI()
 
 def generate_sentence(level, grammar, length, new_words=None, lang="English", topic="any"):
     prompt = f"Write a sentence in {lang}. There must be {length} words."
-    if topic != "any":
+    if topic != "":
         prompt += f" The theme of the sentence is: {topic}."
-    if grammar != "any":
+    if grammar != "":
         prompt += f" Use only the grammar {grammar}."
     if new_words:
         prompt += f" Incorporate these words (in any order): {new_words}."
