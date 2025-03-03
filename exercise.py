@@ -11,10 +11,13 @@ def process_sentence(sentence: str, source_lang: str, target_lang: str):
     # Split the sentence into words.
     words = decap_sentence.strip(" .!?\"'").split()
     
-    
-    # Exclude grammar particles.
-    grammar_particles = ["is", "are", "the", "a", "an", "to", "do", "does", "has", "have"]
-    learnable_words = [word for word in words if word.lower() not in grammar_particles]
+    # Exclude grammar particles
+    grammar_particles = {
+        "english": ["is", "are", "the", "a", "an", "to", "do", "does", "has", "have"],
+        "italian": ["è", "sono", "il", "la", "un", "una", "per", "fare", "ha", "ho"]
+    }
+
+    learnable_words = [word for word in words if word.lower() not in grammar_particles[source_lang.lower()]]
     
     # Leave only words that aren't in the word bank or are due for practice.
     all_words = [w.word for w in get_all_words()]
