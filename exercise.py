@@ -13,7 +13,7 @@ def process_sentence(sentence: str, source_lang: str, target_lang: str):
     
     
     # Exclude grammar particles.
-    grammar_particles = ["is", "are", "the", "a", "an", "to", "do", "does"]
+    grammar_particles = ["is", "are", "the", "a", "an", "to", "do", "does", "has", "have"]
     learnable_words = [word for word in words if word.lower() not in grammar_particles]
     
     # Leave only words that aren't in the word bank or are due for practice.
