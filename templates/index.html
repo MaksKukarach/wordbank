@@ -1,0 +1,71 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Упражнение в стиле Duolingo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2>Профиль</h2>
+    <!-- View Wordbank Button -->
+    <a href="{{ url_for('wordbank') }}" class="btn">Мои слова</a>
+    <h2>Создание уровня</h2>
+    <form action="{{ url_for('start_exercise') }}" method="POST">
+      <label for="level">Выберите уровень:</label>
+      <select name="level" id="level">
+        <option value="A0">A0</option>
+        <option value="A1">A1</option>
+        <option value="A2" selected>A2</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+      </select>
+      
+      <label for="grammar">Грамматическая особенность:</label>
+      <select name="grammar" id="grammar">
+        <option value="any" selected>Любая грамматика</option>
+        <option value="Present Simple">Present Simple</option>
+        <option value="Present Simple Questions" selected>Present Simple Questions</option>
+        <option value="Present Simple Negations">Present Simple Negations</option>
+        <option value="Present Continuous">Present Continuous</option>
+        <option value="Present Continuous Questions">Present Continuous Questions</option>
+        <option value="Present Continuous Negations">Present Continuous Negations</option>
+      </select>
+      
+      <label for="topic">Тема:</label>
+      <select name="topic" id="topic">
+        <option value="any" selected>Любая тема</option>
+        <option value="Food">Food</option>
+        <option value="Travel">Travel</option>
+        <option value="Work">Work</option>
+        <option value="Family">Family</option>
+        <option value="Football">Football</option>
+        <option value="Brawl Stars">Brawl Stars</option>
+        <option value="SpongeBob">SpongeBob</option>
+
+      </select>
+
+      <label for="length">Длина предложения:</label>
+      <select name="length" id="length">
+        <option value="from 3 to 5">Короткое</option>
+        <option value="from 5 to 10" selected>Среднее</option>
+        <option value="from 10 to 15">Длинное</option>
+      </select>
+      
+      <label for="new_words">(опционально) Слова для изучения через запятую:</label>
+      <input type="text" name="new_words" id="new_words" class="secondary">
+      
+      <label for="direction">Направление упражнения:</label>
+      <select name="direction" id="direction" class="secondary">
+        <option value="English-Russian">С английского на русский</option>
+        <option value="Russian-English">С русского на английский</option>
+        <option value="Italian-Russian">С итальянского на русский</option>
+        <option value="Russian-Italian">С русского на итальянский</option>
+      </select>
+      
+      <button type="submit">Начать упражнение</button>
+    </form>
+  </div>
+</body>
+</html>

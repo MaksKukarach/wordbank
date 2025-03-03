@@ -1,0 +1,38 @@
+<!-- templates/wordbank.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Словарь пользователя</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Ваш словарь</h1>
+    {% if words %}
+      <table>
+        <thead>
+          <tr>
+        <th>Слово</th>
+        <th>Уровень владения</th>
+        <th>Последний раз встречалось</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for word in words %}
+          <tr>
+        <td>{{ word.word }}</td>
+        <td>{{ word.mastery_level + 1 }}</td>
+        <td>{{ word.last_practiced }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="margin-bottom: 20px;"></div>
+    {% else %}
+      <p>Словарь пуст.</p>
+    {% endif %}
+    <a class="btn" href="{{ url_for('index') }}">На главную</a>
+  </div>
+</body>
+</html>

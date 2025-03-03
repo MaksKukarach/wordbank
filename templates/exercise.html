@@ -1,0 +1,23 @@
+<!-- templates/exercise.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Упражнения</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <!-- Notification messages -->
+    <div id="message"></div>
+    <!-- Dynamic exercise container -->
+    <div id="exercise-container"></div>
+  </div>
+  
+  <script>
+    // The complete exercise object (including the list of sub-exercises)
+    const exercise = {{ exercise|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
