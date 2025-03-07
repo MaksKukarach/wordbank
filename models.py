@@ -1,6 +1,6 @@
 # models.py
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 db = SQLAlchemy()
 
@@ -35,12 +35,13 @@ def update_word_mastery(input_word, increase=True):
             existing.mastery_level = min(existing.mastery_level + 1, len(MASTERY_LEVELS) - 1)
         else:
             existing.mastery_level = max(existing.mastery_level - 1, 0)
+        existing.last_practiced = datetime.now(timezone.utc)
     else:
         add_word(input_word)
     db.session.commit()
 
 def get_due_words():
-    return LearnedWord.query.filter(LearnedWord.last_practiced < datetime.utcnow() - timedelta(minutes=MASTERY_LEVELS[0])).all()
+    return LearnedWord.query.filter(LearnedWord.last_practiced < datetime.now(timezone.utc) - timedelta(minutes=MASTERY_LEVELS[0])).all()
 
 def is_due(word):
-    return word.last_practiced < datetime.utcnow() - timedelta(minutes=MASTERY_LEVELS[word.mastery_level])
+    return word.last_practiced < datetime.now(timezone.utc) - timedelta(minutes=MASTERY_LEVELS[word.mastery_level])
