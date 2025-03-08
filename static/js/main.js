@@ -1,75 +1,111 @@
 // static/js/main.js
 
-// Global variables to track the current sub-exercise.
 let currentExerciseIndex = 0;
 let exercises = exercise.exercises;
-let currentMatchingSelection = null;  // For word matching
-let currentMatchingCount = 0;         // Count of correct matched pairs
+let currentMatchingSelection = null;  
+let currentMatchingCount = 0;
 
-// Render the current sub-exercise based on its type.
+// For fill in blanks exercise: store user inputs in an array.
+let fillAnswers = [];
+// For word options exercise: store selected answer.
+let wordOptionAnswer = "";
+
 function displayCurrentExercise() {
   let container = document.getElementById("exercise-container");
-  container.innerHTML = ""; // Clear previous content
+  container.innerHTML = "";
   let current = exercises[currentExerciseIndex];
   let html = "";
   
   if (current.type === "word_matching") {
     html += `<div id="word-matching">
-            <h3>Переведи слова!</h3>
-            <div class="matching-container">
+              <h3>Переведи слова!</h3>
+              <div class="matching-container">
                 <div class="column" id="source-column">`;
     current.learnable_words.forEach(word => {
       html += `<button class="brick source-brick" data-word="${word}" data-type="source" onclick="selectMatching(this)">${word}</button>`;
     });
     html += `</div>
-                <div class="column" id="target-column">`;
+              <div class="column" id="target-column">`;
     current.matching_target.forEach(word => {
       html += `<button class="brick target-brick" data-word="${word}" data-type="target" onclick="selectMatching(this)">${word}</button>`;
     });
     html += `</div></div>
-            <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
+              <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
+              <a class="btn skip-btn" onclick="skipExercise()">Пропустить</a>
             </div>`;
   } else if (current.type === "sentence_assembly") {
-    // In sentence assembly, display the original sentence (for context)
     html += `<div id="sentence-assembly">
-           <p class="instruction-small">Соберите предложение, нажимая на переводы. Чтобы убрать слово, нажмите на него в собранном ответе.</p>
-           <h1 class="main-sentence">${current.original_sentence}</h1>
-           <div id="assembly-bricks">`;
+              <p class="instruction-small">Соберите предложение, нажимая на переводы. Чтобы убрать слово, нажмите на него в собранном ответе.</p>
+              <h1 class="main-sentence">${current.original_sentence}</h1>
+              <div id="assembly-bricks">`;
     current.assembly_shuffled.forEach(word => {
       html += `<button class="brick" onclick="selectAssembly(this)">${word}</button>`;
     });
     html += `</div>
-           <div id="assembly-result">
-              <h3>Ваш перевод:</h3>
-              <div id="assembledSentence"></div>
-           </div>
-           <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
-           </div>`;
+              <div id="assembly-result">
+                <h3>Ваш перевод:</h3>
+                <div id="assembledSentence"></div>
+              </div>
+              <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
+              <a class="btn skip-btn" onclick="skipExercise()">Пропустить</a>
+            </div>`;
   } else if (current.type === "reverse_assembly") {
-    // In reverse assembly, display the translated sentence as context.
     html += `<div id="reverse-assembly">
-           <p class="instruction-small">Соберите предложение, нажимая на слова. Чтобы убрать слово, нажмите на него в собранном ответе.</p>
-           <h1 class="main-sentence">${current.translated_sentence}</h1>
-           <div id="assembly-bricks">`;
+              <p class="instruction-small">Соберите предложение, нажимая на слова. Чтобы убрать слово, нажмите на него в собранном ответе.</p>
+              <h1 class="main-sentence">${current.translated_sentence}</h1>
+              <div id="assembly-bricks">`;
     current.reverse_shuffled.forEach(word => {
       html += `<button class="brick" onclick="selectAssembly(this)">${word}</button>`;
     });
     html += `</div>
-           <div id="assembly-result">
-              <h3>Ваш ответ:</h3>
-              <div id="assembledSentence"></div>
-           </div>
-           <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
-           </div>`;
+              <div id="assembly-result">
+                <h3>Ваш ответ:</h3>
+                <div id="assembledSentence"></div>
+              </div>
+              <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
+              <a class="btn skip-btn" onclick="skipExercise()">Пропустить</a>
+            </div>`;
+  } else if (current.type === "fill_in_blanks") {
+    // The backend returns a fill_in_sentence string with "___" for blanks.
+    let parts = current.fill_in_sentence.split("___");
+    let blanksCount = parts.length - 1;
+    fillAnswers = new Array(blanksCount).fill("");
+    html += `<div id="fill-in-blanks">
+              <p class="instruction-small">Заполните пропуски, кликнув по ним для ввода.</p>
+              <h1 class="main-sentence">`;
+    for (let i = 0; i < parts.length; i++) {
+      html += parts[i];
+      if (i < blanksCount) {
+        // The blank is rendered as an inline span that will turn into an input on click.
+        html += `<span class="blank" data-index="${i}" onclick="editBlank(this)">______</span>`;
+      }
+    }
+    html += `</h1>
+             <h2 class="instruction-small">Перевод: ${current.translated_sentence}</h2>
+             <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
+             <a class="btn skip-btn" onclick="skipExercise()">Пропустить</a>
+             </div>`;
+  } else if (current.type === "word_options") {
+    html += `<div id="word-options">
+              <p class="instruction-small">Выберите правильное слово по переводу:</p>
+              <h2 class="main-sentence">"${current.prompt_translation}"</h2>
+              <div id="options-container">`;
+    current.options.forEach(option => {
+      html += `<button class="brick" onclick="selectWordOption(this)">${option}</button>`;
+    });
+    html += `</div>
+              <a class="btn" onclick="submitCurrentExercise()">Отправить</a>
+              <a class="btn skip-btn" onclick="skipExercise()">Пропустить</a>
+            </div>`;
   }
   
   container.innerHTML = html;
-  // Reset selection variables for the new exercise.
+  // Reset variables.
   currentMatchingSelection = null;
   currentMatchingCount = 0;
+  wordOptionAnswer = "";
 }
 
-// --- Word Matching Handlers ---
 function selectMatching(element) {
   if (element.disabled) return;
   let type = element.getAttribute("data-type");
@@ -116,23 +152,15 @@ function selectMatching(element) {
   }
 }
 
-// --- Assembly Handlers (for sentence and reverse assembly) ---
 function selectAssembly(element) {
-  // Check if already removed.
   if (element.dataset.removed === "true") return;
-  
-  // Mark as removed and remove from its container.
   element.dataset.removed = "true";
   let assemblyContainer = document.getElementById("assembly-bricks");
   assemblyContainer.removeChild(element);
-  
   const word = element.textContent;
   const span = document.createElement("span");
   span.textContent = word;
-  // Save a reference to the original button.
   span._button = element;
-  
-  // When the span is clicked, remove the span and reinsert the original button.
   span.onclick = function () {
     span.style.opacity = 0;
     setTimeout(() => {
@@ -146,12 +174,39 @@ function selectAssembly(element) {
   setTimeout(() => { span.style.opacity = 1; }, 50);
 }
 
-// --- Submission and Navigation ---
+function selectWordOption(button) {
+  let options = document.querySelectorAll("#options-container .brick");
+  options.forEach(opt => opt.classList.remove("selected"));
+  button.classList.add("selected");
+  wordOptionAnswer = button.textContent;
+}
+
+function editBlank(blankElement) {
+  let index = blankElement.getAttribute("data-index");
+  let input = document.createElement("input");
+  input.type = "text";
+  input.className = "blank-input";
+  // If there's already a value saved in fillAnswers, use it.
+  input.value = fillAnswers[index] || "";
+  blankElement.innerHTML = "";
+  blankElement.appendChild(input);
+  input.focus();
+  input.addEventListener("blur", function() {
+    let val = input.value.trim();
+    fillAnswers[index] = val;
+    blankElement.textContent = val === "" ? "______" : val;
+  });
+  input.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      input.blur();
+    }
+  });
+}
+
 function submitCurrentExercise() {
   let current = exercises[currentExerciseIndex];
   let userAnswer;
   if (current.type === "word_matching") {
-    // For word matching, answer is correct if all pairs are matched.
     userAnswer = (currentMatchingCount === current.learnable_words.length);
   } else if (current.type === "sentence_assembly") {
     userAnswer = [];
@@ -163,9 +218,26 @@ function submitCurrentExercise() {
     document.querySelectorAll("#assembledSentence span").forEach(span => {
       userAnswer.push(span.textContent);
     });
+  } else if (current.type === "fill_in_blanks") {
+    // Collect answers from all blanks. For blanks that never turned into an input, treat them as empty.
+    userAnswer = [];
+    let blanks = document.querySelectorAll(".blank");
+    blanks.forEach(blank => {
+      // Check if there's an input inside the blank.
+      let input = blank.querySelector("input");
+      if (input) {
+        userAnswer.push(input.value.trim());
+      } else {
+        let text = blank.textContent.trim();
+        userAnswer.push(text === "______" ? "" : text);
+      }
+    });
+  } else if (current.type === "word_options") {
+    userAnswer = wordOptionAnswer;
   }
   
-  // Send answer to backend.
+  console.log("User answer:", userAnswer);
+  
   fetch('/check_answer', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -185,18 +257,14 @@ function submitCurrentExercise() {
         setTimeout(displayCurrentExercise, 1000);
       } else {
         displayMessage("Все упражнения выполнены!", "success");
-        // Redirect to home screen after a short delay.
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 2000);
+        setTimeout(() => { window.location.href = "/"; }, 2000);
       }
     } else {
       displayMessage("Неправильно, попробуйте снова.", "error");
-      // For assembly exercises, reinsert any removed buttons from the assembled area.
+      // Reset for assembly exercises.
       if (current.type === "sentence_assembly" || current.type === "reverse_assembly") {
         const assembled = document.getElementById("assembledSentence");
         const assemblyContainer = document.getElementById("assembly-bricks");
-        // For each span in the assembled area, reinsert the corresponding button.
         assembled.querySelectorAll("span").forEach(span => {
           let btn = span._button;
           if (btn) {
@@ -205,21 +273,42 @@ function submitCurrentExercise() {
           }
           span.remove();
         });
-        // Also, re-enable any remaining buttons.
         document.querySelectorAll("#assembly-bricks .brick").forEach(btn => {
           btn.disabled = false;
           btn.classList.remove("selected");
         });
       }
+      if (current.type === "fill_in_blanks") {
+        // Clear each blank input.
+        document.querySelectorAll(".blank-input").forEach(input => {
+          input.value = "";
+        });
+      }
+      if (current.type === "word_options") {
+        let options = document.querySelectorAll("#options-container .brick");
+        options.forEach(opt => opt.classList.remove("selected"));
+        wordOptionAnswer = "";
+      }
     }
   });
+}
+
+function skipExercise() {
+  displayMessage("Упражнение пропущено", "info");
+  currentExerciseIndex++;
+  if (currentExerciseIndex < exercises.length) {
+    setTimeout(displayCurrentExercise, 1000);
+  } else {
+    displayMessage("Все упражнения выполнены!", "success");
+    setTimeout(() => { window.location.href = "/"; }, 2000);
+  }
 }
 
 function displayMessage(message, type) {
   const messageDiv = document.getElementById("message");
   messageDiv.textContent = message;
   messageDiv.className = "";
-  messageDiv.classList.add(type === "success" ? "message-success" : "message-error");
+  messageDiv.classList.add(type === "success" ? "message-success" : (type === "info" ? "message-info" : "message-error"));
   messageDiv.style.opacity = 1;
   messageDiv.style.display = "block";
   setTimeout(() => {
@@ -228,7 +317,6 @@ function displayMessage(message, type) {
   }, 2000);
 }
 
-// Initialize the first sub-exercise on page load.
 window.onload = function () {
   displayCurrentExercise();
 };

@@ -74,6 +74,7 @@ def check_user_answer():
     if check_answer(exercise_type, user_answer, sub_exercise):
         for word in practiced_words:
             update_word_mastery(word, increase=True)
+            print('Word mastery updated:', word)
         return jsonify({'result': 'correct'})
     else:
         return jsonify({'result': 'incorrect'})
