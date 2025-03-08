@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тестирование упражнений</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Тестирование упражнений</h1>
+    <h2>Исходное предложение:</h2>
+    <p>{{ exercise.sentence }}</p>
+    <hr>
+    <h2>Упражнения:</h2>
+    {% for ex in exercise.exercises %}
+      <div class="exercise">
+        <h3>{{ ex.type | replace('_', ' ') | title }}</h3>
+        <pre>{{ ex | tojson(indent=2) }}</pre>
+      </div>
+      <hr>
+    {% endfor %}
+    <a class="btn" href="{{ url_for('index') }}">На главную</a>
+  </div>
+</body>
+</html>
