@@ -54,6 +54,9 @@ def time_until_review(word: LearnedWord, formatted=True):
     # Ensure due_time is UTC aware.
     due = ensure_utc(word.due_time)
     diff = due - utc_now()
+    # If time is due, return "0:00:00"
+    if diff.total_seconds() < 0:
+        return "0:00:00"
     if formatted:
         return str(diff).split(".")[0]  # Remove microseconds
     else:
