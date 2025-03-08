@@ -83,5 +83,14 @@ def wordbank():
     words = get_all_words()
     return render_template('wordbank.html', words=words, time_until_review=time_until_review)
 
+@app.route('/test')
+def test():
+    # Use a sample sentence and languages for testing.
+    sample_sentence = "Learning languages is fun and challenging."
+    source_lang = "English"
+    target_lang = "Italian"
+    exercise_data = process_sentence(sample_sentence, source_lang, target_lang)
+    return render_template('test.html', exercise=exercise_data)
+
 if __name__ == '__main__':
     app.run(debug=True)
