@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, session, jsonify
 from openai_api import generate_sentence
 from exercise import process_sentence, check_answer
-from models import db, update_word_mastery, get_due_words, get_all_words
+from models import db, update_word_mastery, get_due_words, get_all_words, time_until_review
 import random
 
 app = Flask(__name__)
@@ -46,7 +46,7 @@ def start_exercise():
     source_lang= langs[0]
     target_lang = langs[1]
 
-    sentence = generate_sentence(level, grammar, length, new_words, source_lang, topic)
+    sentence = generate_sentence(source_lang, length, level, grammar, new_words, topic)
         
     exercise = process_sentence(sentence, source_lang, target_lang)
     session['exercise'] = exercise
@@ -81,7 +81,7 @@ def check_user_answer():
 @app.route('/wordbank')
 def wordbank():
     words = get_all_words()
-    return render_template('wordbank.html', words=words)
+    return render_template('wordbank.html', words=words, time_until_review=time_until_review)
 
 if __name__ == '__main__':
     app.run(debug=True)

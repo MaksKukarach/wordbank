@@ -1,40 +1,31 @@
 # exercise.py
 import random
 import openai_api
-from models import get_all_words, is_due
+from models import *
+
+grammar_particles = {
+    "english": ["is", "are", "the", "a", "an", "to", "do", "does", "has", "have"],
+    "italian": ["è", "sono", "il", "la", "le", "i", "un", "una", "per", "fare", "ha", "ho"]
+}
 
 def process_sentence(sentence: str, source_lang: str, target_lang: str):
     """ Process a sentence to generate language learning exercises. """
-    # Decapitalize first letter of the sentence
     decap_sentence = sentence[0].lower() + sentence[1:]
-
-    # Split the sentence into words.
     words = decap_sentence.strip(" .!?\"'").split()
-    
-    # Exclude grammar particles
-    grammar_particles = {
-        "english": ["is", "are", "the", "a", "an", "to", "do", "does", "has", "have"],
-        "italian": ["è", "sono", "il", "la", "le", "i", "un", "una", "per", "fare", "ha", "ho"]
-    }
-
-    learnable_words = [word for word in words if word.lower() not in grammar_particles[source_lang.lower()]]
-    
-    # Leave only words that aren't in the word bank or are due for practice.
-    all_words = [w.word for w in get_all_words()]
-    new_learnable_words = [word for word in learnable_words if word not in all_words]
+    learnable_words = filter_learnable(words, source_lang.lower())
     
     # --- Word Matching Exercise ---
     # Create mapping of source word -> translated word using context-aware translation.
     translations = {
         word: openai_api.translate_word(word, source_lang, target_lang, sentence)
-        for word in new_learnable_words
+        for word in learnable_words
     }
     matching_target = list(translations.values())
     random.shuffle(matching_target)
     
     word_matching = {
         "type": "word_matching",
-        "learnable_words": new_learnable_words,
+        "learnable_words": learnable_words,
         "translations": translations,
         "matching_target": matching_target
     }
@@ -51,7 +42,7 @@ def process_sentence(sentence: str, source_lang: str, target_lang: str):
         "original_sentence": sentence,
         "assembly_bricks": assembly_bricks,
         "assembly_shuffled": assembly_shuffled,
-        "learnable_words": new_learnable_words,
+        "learnable_words": learnable_words,
     }
     
     # --- Reverse Assembly Exercise --- Translated -> Original ---
@@ -65,7 +56,7 @@ def process_sentence(sentence: str, source_lang: str, target_lang: str):
         "translated_sentence": translated_sentence,
         "reverse_bricks": reverse_bricks,
         "reverse_shuffled": reverse_shuffled,
-        "learnable_words": new_learnable_words,
+        "learnable_words": learnable_words,
     }
     
     # Combine sub-exercises into a list.
@@ -77,6 +68,15 @@ def process_sentence(sentence: str, source_lang: str, target_lang: str):
          "target_lang": target_lang,
          "exercises": exercises
     }
+
+def filter_learnable(words, language):
+    translatable_words = [word for word in words if word.lower() not in grammar_particles[language.lower()]]
+    learnable_words = []
+    for word in translatable_words:
+        word_object = LearnedWord.query.filter_by(word=word).first()
+        if not word_object or is_due(word_object):
+            learnable_words.append(word)
+    return learnable_words
 
 def check_answer(exercise_type, user_answer, exercise_data):
     """

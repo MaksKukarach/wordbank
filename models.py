@@ -1,21 +1,25 @@
 # models.py
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
+from time_utils import utc_now, ensure_utc
 
 db = SQLAlchemy()
 
 # Each level is a number of minutes until the next review:
-# 10 min -> 1 hour -> 24 hours -> 2 days -> 4 days -> 7 days -> 14 days -> 30 days
-MASTERY_LEVELS = [10, 60, 1440, 2880, 5760, 10080, 20160, 43200]
+# 5 min, 10 min, 15 min, 20 min, 30 min, 1 hour, 2 hours, 1 day, 2 days, 4 days, 1 week, 2 weeks, 1 month
+MASTERY_LEVELS = [5, 10, 15, 20, 30, 60, 120, 1440, 2880, 5760, 10080, 20160, 43200]
+
+def calculate_due_time(mastery_index=0):
+    return utc_now() + timedelta(minutes=MASTERY_LEVELS[mastery_index])
 
 class LearnedWord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     word = db.Column(db.String(100), nullable=False)
-    last_practiced = db.Column(db.DateTime, default=datetime.utcnow)
+    # Use a callable so that each new record gets a fresh value.
+    due_time = db.Column(db.DateTime, default=calculate_due_time)
     mastery_level = db.Column(db.Integer, default=0)
 
 def add_word(word):
-    # If word not in database, add the word to the database with mastery level 0 and current timestamp.
     learned = LearnedWord.query.filter_by(word=word).first()
     if not learned:
         learned = LearnedWord(word=word)
@@ -31,17 +35,26 @@ def update_word_mastery(input_word, increase=True):
     existing = LearnedWord.query.filter_by(word=input_word).first()
     if existing:
         if increase:
-            # If the mastery level is already at the highest level, it will stay at max level.
             existing.mastery_level = min(existing.mastery_level + 1, len(MASTERY_LEVELS) - 1)
         else:
             existing.mastery_level = max(existing.mastery_level - 1, 0)
-        existing.last_practiced = datetime.now(timezone.utc)
+        # Update due_time using our utility functions.
+        existing.due_time = calculate_due_time(existing.mastery_level)
     else:
         add_word(input_word)
     db.session.commit()
 
 def get_due_words():
-    return LearnedWord.query.filter(LearnedWord.last_practiced < datetime.now(timezone.utc) - timedelta(minutes=MASTERY_LEVELS[0])).all()
+    return LearnedWord.query.filter(LearnedWord.due_time <= utc_now()).all()
 
-def is_due(word):
-    return word.last_practiced < datetime.now(timezone.utc) - timedelta(minutes=MASTERY_LEVELS[word.mastery_level])
+def is_due(word: LearnedWord):
+    return ensure_utc(word.due_time) <= utc_now()
+
+def time_until_review(word: LearnedWord, formatted=True):
+    # Ensure due_time is UTC aware.
+    due = ensure_utc(word.due_time)
+    diff = due - utc_now()
+    if formatted:
+        return str(diff).split(".")[0]  # Remove microseconds
+    else:
+        return diff

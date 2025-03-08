@@ -1,19 +1,19 @@
 # openai_api.py
 import openai
-import os
 
 # Ensure you set your OPENAI_API_KEY in your environment
 client = openai.OpenAI()
 
 
-def generate_sentence(level, grammar, length, new_words=None, lang="English", topic="any"):
-    prompt = f"Write a sentence in {lang}. There must be {length} words."
+def generate_sentence(language="English", length="from 3 to 5", difficulty="easy or medium", grammar="",  new_words=None, topic=""):
+    prompt = f"Write a sentence in {language}. There must be {length} words."
     if topic != "":
         prompt += f" The theme of the sentence is: {topic}."
     if grammar != "":
         prompt += f" Use only the grammar {grammar}."
     if new_words:
         prompt += f" Incorporate these words (in any order): {new_words}."
+    prompt += f" Difficulty of the sentence: {difficulty}."
     prompt += " Write the sentence only."
 
     try:

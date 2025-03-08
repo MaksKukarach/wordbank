@@ -15,7 +15,7 @@
           <tr>
         <th>Слово</th>
         <th>Уровень владения</th>
-        <th>Последний раз встречалось</th>
+        <th>Повторять через</th>
           </tr>
         </thead>
         <tbody>
@@ -23,7 +23,7 @@
           <tr>
         <td>{{ word.word }}</td>
         <td>{{ word.mastery_level + 1 }}</td>
-        <td>{{ word.last_practiced }}</td>
+        <td>{{ time_until_review(word) }}</td>
           </tr>
           {% endfor %}
         </tbody>
